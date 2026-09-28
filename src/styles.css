@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Noto Sans JP", "Hiragino Sans", "Noto Sans CJK JP", sans-serif;
+  --color-bg: #f3efe6;
+  --color-surface: #fffcf6;
+  --color-ink: #1a221c;
+  --color-muted: #5e675f;
+  --color-line: #e2d9cb;
+  --color-primary: #1b6b45;
+  --color-primary-fg: #f4fff8;
+  --color-accent: #b4532a;
+  --color-accent-soft: #f8ebe3;
+  --color-chip: #e7f3ec;
+  --radius-card: 1.125rem;
+}
+
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  html,
+  body {
+    background: var(--color-bg);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+  }
+}

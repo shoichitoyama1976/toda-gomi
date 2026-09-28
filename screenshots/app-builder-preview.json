@@ -1,0 +1,38 @@
+{
+  "url": "http://127.0.0.1:8080/",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "戸田ごみ",
+      "hasCanvas": false,
+      "bodyTextLen": 356,
+      "bodyTextHash": "46564d2f5a5de0beb879cca797d0bce382a49845874d00f559d55adc4a79f2dc",
+      "bodyTextPrefix": "戸田市・家庭ごみ 品目から出す日 地区を選んで品目名を入れると、区分・曜日・出し方がこの画面に出ます。 収集地区 喜沢・下戸田・",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "戸田ごみ",
+      "hasCanvas": false,
+      "bodyTextLen": 356,
+      "bodyTextHash": "46564d2f5a5de0beb879cca797d0bce382a49845874d00f559d55adc4a79f2dc",
+      "bodyTextPrefix": "戸田市・家庭ごみ 品目から出す日 地区を選んで品目名を入れると、区分・曜日・出し方がこの画面に出ます。 収集地区 喜沢・下戸田・",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview-mobile.png"
+    }
+  },
+  "brandWarnings": [
+    "BRAND NOTE: no custom public/og.jpg — the platform will serve the og.grok.me placeholder. Custom cards are the default for games of every kind (DOM board/word games included), whimsical apps, creative tools, and brand-forward pages — only plain utilities (converters, CRUD trackers, admin dashboards) keep the placeholder. If this app is not a plain utility, finish the brand-asset pass per /workspace/.grok/skills/og/SKILL.md."
+  ],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/app-builder-preview.json"
+}
