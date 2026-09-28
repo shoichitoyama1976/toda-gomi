@@ -54,8 +54,7 @@ function Home() {
     () => (query.trim() && matches.length === 0 ? suggestItems(query) : []),
     [query, matches.length],
   );
-  const foam = query.trim() !== "" && isPackingFoam(query);
-  const needOfficial = query.trim().length >= 2 && matches.length === 0 && !foam;
+  const needOfficial = query.trim().length >= 2 && matches.length === 0;
 
   useEffect(() => {
     if (!needOfficial) {
@@ -94,6 +93,7 @@ function Home() {
     () => (query.trim() && matches.length === 0 ? inferType(query) : null),
     [query, matches.length],
   );
+  const foam = query.trim() !== "" && matches.length === 0 && isPackingFoam(query);
   const picked =
     (pickedId ? ITEMS.find((it) => it.id === pickedId) : undefined) ??
     (matches.length === 1 ? matches[0] : undefined);
@@ -144,7 +144,7 @@ function Home() {
         />
       </label>
 
-      {query.trim() && matches.length > 1 && !pickedId && !foam ? (
+      {query.trim() && matches.length > 1 && !pickedId ? (
         <ul className="mb-4 overflow-hidden rounded-xl border border-line bg-surface">
           {matches.map((it) => (
             <li key={it.id} className="border-b border-line last:border-b-0">
@@ -161,9 +161,7 @@ function Home() {
         </ul>
       ) : null}
 
-      {foam ? <FoamAnswer district={district} /> : null}
-
-      {query.trim() && matches.length === 0 && !foam ? (
+      {query.trim() && matches.length === 0 ? (
         <div className="mb-4 rounded-xl border border-line bg-surface px-4 py-3 text-sm">
           {officialState === "loading" ? <p className="text-muted">戸田市の品目表を確認しています。</p> : null}
           {officialHits.length > 1 && !officialPick ? (
@@ -191,11 +189,13 @@ function Home() {
           {officialState !== "loading" && officialHits.length === 0 ? (
             <>
               <p className="text-muted">
-                {guess
-                  ? `「${query.trim()}」は戸田市の品目表にありません。種類から「${guess.typeName}」と推定します。`
-                  : `「${query.trim()}」はそのままでは見つかりません。${officialState === "error" ? "公式の品目表をただいま確認できません。" : officialState === "ready" ? "戸田市の品目表にもありません。近い言い方を選んでください。" : "近い言い方を選んでください。"}`}
+                {foam
+                  ? `「${query.trim()}」は戸田市の品目表にありません。種類から「梱包用の発泡スチロール」と推定します。`
+                  : guess
+                    ? `「${query.trim()}」は戸田市の品目表にありません。種類から「${guess.typeName}」と推定します。`
+                    : `「${query.trim()}」はそのままでは見つかりません。${officialState === "error" ? "公式の品目表をただいま確認できません。" : officialState === "ready" ? "戸田市の品目表にもありません。近い言い方を選んでください。" : "近い言い方を選んでください。"}`}
               </p>
-              {suggestions.length > 0 ? (
+              {suggestions.length > 0 && !foam && !guess ? (
                 <ul className="mt-2">
                   {suggestions.map((it) => (
                     <li key={it.id} className="border-t border-line">
@@ -214,7 +214,11 @@ function Home() {
                   ))}
                 </ul>
               ) : null}
-              {guess ? (
+              {foam ? (
+                <div className="mt-3 border-t border-line pt-3">
+                  <FoamAnswer district={district} />
+                </div>
+              ) : guess ? (
                 <div className="mt-3 border-t border-line pt-3">
                   <Result
                     district={district}
@@ -236,7 +240,7 @@ function Home() {
         </div>
       ) : null}
 
-      {picked && query.trim() && !foam ? <Result district={district} item={picked} /> : null}
+      {picked && query.trim() ? <Result district={district} item={picked} /> : null}
 
       {!query.trim() ? <WeekStrip district={district} todayDow={today.dow} todayM={today.m} todayD={today.day} /> : null}
 
