@@ -56,17 +56,7 @@ function normalize(raw: string): string {
 export function matchOfficialRows(rows: OfficialRow[], query: string): OfficialRow[] {
   const s = normalize(query);
   if (s.length < 2) return [];
-  const scored = rows
-    .map((row) => {
-      const name = normalize(row.name);
-      let score = 0;
-      if (name === s) score = 100;
-      else if (name.startsWith(s)) score = 80;
-      else if (name.includes(s)) score = 50;
-      else if (name.length >= 2 && s.includes(name)) score = 40;
-      return { row, score };
-    })
-    .filter((entry) => entry.score > 0)
-    .sort((a, b) => b.score - a.score || a.row.name.localeCompare(b.row.name, "ja"));
-  return scored.slice(0, 8).map((entry) => entry.row);
+  return rows
+    .filter((row) => normalize(row.name) === s)
+    .sort((a, b) => a.name.localeCompare(b.name, "ja"));
 }
