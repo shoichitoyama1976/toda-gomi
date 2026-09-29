@@ -86,8 +86,8 @@ function Home() {
   }, [needOfficial, query]);
 
   const guess = useMemo(
-    () => (query.trim() && matches.length === 0 ? inferType(query) : null),
-    [query, matches.length],
+    () => (query.trim() && matches.length === 0 && suggestions.length === 0 ? inferType(query) : null),
+    [query, matches.length, suggestions.length],
   );
   const material = useMemo(
     () =>
