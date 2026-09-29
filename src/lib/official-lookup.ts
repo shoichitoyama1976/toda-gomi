@@ -1,5 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
-import { matchOfficialRows, OFFICIAL_LIST_URL, parseOfficialList, type OfficialRow } from "@/data/official-list";
+import {
+  matchOfficialPartial,
+  matchOfficialRows,
+  OFFICIAL_LIST_URL,
+  parseOfficialList,
+  type OfficialRow,
+} from "@/data/official-list";
 
 const TTL_MS = 6 * 60 * 60 * 1000;
 
@@ -17,9 +23,14 @@ async function loadOfficialRows(): Promise<OfficialRow[]> {
   return rows;
 }
 
+export type OfficialLookup = { exact: OfficialRow[]; partial: OfficialRow[] };
+
 export const lookupOfficial = createServerFn({ method: "POST" })
   .inputValidator((data: { query: string }) => data)
-  .handler(async ({ data }): Promise<OfficialRow[]> => {
+  .handler(async ({ data }): Promise<OfficialLookup> => {
     const rows = await loadOfficialRows();
-    return matchOfficialRows(rows, data.query);
+    return {
+      exact: matchOfficialRows(rows, data.query),
+      partial: matchOfficialPartial(rows, data.query),
+    };
   });

@@ -30,7 +30,9 @@ function Home() {
   const [query, setQuery] = useState("");
   const [pickedId, setPickedId] = useState<string | null>(null);
   const [officialHits, setOfficialHits] = useState<OfficialRow[]>([]);
+  const [partialHits, setPartialHits] = useState<OfficialRow[]>([]);
   const [officialPick, setOfficialPick] = useState<string | null>(null);
+  const [partialPick, setPartialPick] = useState<string | null>(null);
   const [officialState, setOfficialState] = useState<"idle" | "loading" | "ready" | "error">("idle");
 
   useEffect(() => {
@@ -45,32 +47,40 @@ function Home() {
 
   const district = DISTRICTS.find((d) => d.id === districtId) ?? DISTRICTS[0];
   const matches = useMemo(() => searchItems(query), [query]);
-  const needOfficial = query.trim().length >= 2 && matches.length === 0;
+  const needOfficial = query.trim().length >= 2;
 
   useEffect(() => {
     if (!needOfficial) {
       setOfficialHits([]);
+      setPartialHits([]);
       setOfficialPick(null);
+      setPartialPick(null);
       setOfficialState("idle");
       return;
     }
     const q = query.trim();
     let cancelled = false;
     setOfficialHits([]);
+    setPartialHits([]);
     setOfficialPick(null);
+    setPartialPick(null);
     setOfficialState("loading");
     const timer = setTimeout(() => {
       lookupOfficial({ data: { query: q } })
         .then((rows) => {
           if (cancelled) return;
-          setOfficialHits(rows);
-          setOfficialPick(rows.length === 1 ? rows[0].name : null);
+          setOfficialHits(rows.exact);
+          setPartialHits(rows.partial);
+          setOfficialPick(rows.exact.length === 1 ? rows.exact[0].name : null);
+          setPartialPick(null);
           setOfficialState("ready");
         })
         .catch(() => {
           if (cancelled) return;
           setOfficialHits([]);
+          setPartialHits([]);
           setOfficialPick(null);
+          setPartialPick(null);
           setOfficialState("error");
         });
     }, 350);
@@ -131,6 +141,7 @@ function Home() {
           onChange={(e) => {
             setQuery(e.target.value);
             setPickedId(null);
+            setPartialPick(null);
           }}
           placeholder="捨てたいもの（例: ペットボトル、電池、布団）"
           className="h-12 w-full rounded-xl border border-line bg-surface pr-3 pl-11 text-base text-ink outline-none focus:border-primary"
@@ -242,6 +253,31 @@ function Home() {
       ) : null}
 
       {picked && query.trim() ? <Result district={district} item={picked} /> : null}
+
+      {partialHits.length > 0 && officialState === "ready" ? (
+        <div className="mb-4 rounded-xl border border-line bg-surface px-4 py-3 text-sm">
+          <p className="font-medium">もしかしたらこれを捨てたいですか？</p>
+          <ul className="mt-2">
+            {partialHits.map((row) => (
+              <li key={row.name} className="border-t border-line">
+                <button
+                  type="button"
+                  onClick={() => setPartialPick(row.name)}
+                  className="flex min-h-12 w-full items-center justify-between gap-3 py-2 text-left"
+                >
+                  <span className="font-medium">{row.name}</span>
+                  <span className="shrink-0 text-xs text-muted">{row.kind}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+          {partialPick ? (
+            <div className="mt-3 border-t border-line pt-3">
+              <OfficialResult district={district} row={partialHits.find((row) => row.name === partialPick) ?? partialHits[0]} />
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       {!query.trim() ? <WeekStrip district={district} todayDow={today.dow} todayM={today.m} todayD={today.day} /> : null}
 
