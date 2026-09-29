@@ -160,31 +160,14 @@ for (let i = 0; i < ITEMS.length; i++) {
   }
 }
 
-function includesAsWord(key: string, query: string): boolean {
-  const qLen = query.length;
-  let from = 0;
-  while (from <= key.length - qLen) {
-    const at = key.indexOf(query, from);
-    if (at < 0) return false;
-    const prev = at === 0 ? "" : key[at - 1];
-    if ((at === 0 || at + qLen === key.length) && prev !== "ー") return true;
-    from = at + 1;
-  }
-  return false;
-}
-
 export function searchItems(q: string): Item[] {
   const s = normalize(q);
   if (!s) return [];
   const best = new Map<number, number>();
   for (let k = 0; k < keyText.length; k++) {
     const text = keyText[k];
-    const name = keyIsName[k] === 1;
-    let score = 0;
-    if (text === s) score = name ? 100 : 90;
-    else if (s.length >= 2 && text.startsWith(s)) score = 80;
-    else if (s.length >= 2 && includesAsWord(text, s)) score = 50;
-    else if (text.length >= 3 && s.includes(text)) score = name ? 40 : 30;
+    if (text !== s) continue;
+    const score = keyIsName[k] === 1 ? 100 : 90;
     const item = keyItem[k];
     if (score > (best.get(item) ?? 0)) best.set(item, score);
   }
