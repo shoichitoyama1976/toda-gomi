@@ -445,6 +445,13 @@ export function inferMaterial(q: string): MaterialGuess | null {
   return fromWords?.guess ?? fromObject?.guess ?? null;
 }
 
+const BUBBLE_WORDS = ["ぷちぷち", "気泡緩衝材", "エアキャップ", "エアーキャップ", "エアパッキン", "エアーパッキン", "気泡シート"];
+
+export function isBubbleWrap(q: string): boolean {
+  const s = normalize(q);
+  return BUBBLE_WORDS.some((word) => s.includes(normalize(word)));
+}
+
 export function formatDays(days: number[]): string {
   return days.map((d) => WEEKDAY[d]).join("・");
 }

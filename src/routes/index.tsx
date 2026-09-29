@@ -10,6 +10,7 @@ import {
   formatStamp,
   inferMaterial,
   inferType,
+  isBubbleWrap,
   isClosure,
   nextCollection,
   searchItems,
@@ -89,12 +90,14 @@ function Home() {
     () => (query.trim() && matches.length === 0 ? inferType(query) : null),
     [query, matches.length],
   );
+  const bubble =
+    query.trim() !== "" && matches.length === 0 && !guess && suggestions.length === 0 && isBubbleWrap(query);
   const material = useMemo(
     () =>
-      query.trim() && matches.length === 0 && !guess && suggestions.length === 0
+      query.trim() && matches.length === 0 && !guess && suggestions.length === 0 && !bubble
         ? inferMaterial(query)
         : null,
-    [query, matches.length, guess, suggestions.length],
+    [query, matches.length, guess, suggestions.length, bubble],
   );
   const picked =
     (pickedId ? ITEMS.find((it) => it.id === pickedId) : undefined) ??
@@ -194,19 +197,25 @@ function Home() {
                 {officialState === "error"
                   ? guess
                     ? "公式の品目表をただいま確認できません。種類から推定します。"
-                    : material
-                      ? "公式の品目表をただいま確認できません。近い言い方もないので、材質から推定します。"
-                      : "公式の品目表をただいま確認できません。近い言い方を選んでください。"
+                    : bubble
+                      ? "公式の品目表をただいま確認できません。近い言い方もないので、プラマークと汚れで区分が分かれます。"
+                      : material
+                        ? "公式の品目表をただいま確認できません。近い言い方もないので、材質から推定します。"
+                        : "公式の品目表をただいま確認できません。近い言い方を選んでください。"
                   : query.trim().length < 2
                     ? guess
                       ? "1文字のため公式の品目表は見ていません。種類から推定します。"
-                      : material
-                        ? "近い言い方はありません。材質から推定します。"
-                        : "1文字のため公式の品目表は見ていません。近い言い方を選んでください。"
+                      : bubble
+                        ? "近い言い方はありません。プラマークと汚れで区分が分かれます。"
+                        : material
+                          ? "近い言い方はありません。材質から推定します。"
+                          : "1文字のため公式の品目表は見ていません。近い言い方を選んでください。"
                     : guess
                       ? `「${query.trim()}」は戸田市の品目表にありません。種類から「${guess.typeName}」と推定します。`
-                      : material
-                        ? `「${query.trim()}」は近い言い方がありません。入力から材質（${material.material}）を推定し、「${material.typeName}」と決めます。`
+                      : bubble
+                        ? `「${query.trim()}」は戸田市の品目表にありません。プラマークと汚れで区分が分かれます。`
+                        : material
+                          ? `「${query.trim()}」は近い言い方がありません。入力から材質（${material.material}）を推定し、「${material.typeName}」と決めます。`
                         : officialState === "ready"
                           ? `「${query.trim()}」はそのままでは見つかりません。戸田市の品目表にもありません。近い言い方を選んでください。`
                           : `「${query.trim()}」はそのままでは見つかりません。近い言い方を選んでください。`}
@@ -245,6 +254,10 @@ function Home() {
                     }}
                   />
                   {guess.bulky && guess.slot !== "sodai" ? <SodaiGuide /> : null}
+                </div>
+              ) : bubble ? (
+                <div className="mt-3 border-t border-line pt-3">
+                  <BubbleAnswer district={district} />
                 </div>
               ) : material ? (
                 <div className="mt-3 border-t border-line pt-3">
@@ -372,6 +385,48 @@ function Result({ district, item }: { district: District; item: Item }) {
 
       {item.slot === "sodai" ? <SodaiGuide /> : null}
     </article>
+  );
+}
+
+function BubbleAnswer({ district }: { district: District }) {
+  const patterns = [
+    {
+      when: "プラマークがある",
+      kind: "プラマーク容器包装",
+      day: `もやさないごみの日（毎週${formatDays(district.days.moyasanai)}曜日）`,
+      how: "白色半透明または透明の袋。",
+    },
+    {
+      when: "プラマークがない",
+      kind: "もやすごみ",
+      day: `もやすごみの日（毎週${formatDays(district.days.moyasu)}曜日）`,
+      how: "製品プラスチックとして、白色半透明または透明の袋。",
+    },
+    {
+      when: "汚れが落ちない",
+      kind: "もやすごみ",
+      day: `もやすごみの日（毎週${formatDays(district.days.moyasu)}曜日）`,
+      how: "マークがあっても、もやすごみです。",
+    },
+  ];
+  return (
+    <div>
+      <ol className="space-y-2">
+        {patterns.map((pattern, index) => (
+          <li key={pattern.when} className="rounded-xl border border-line px-3 py-3">
+            <p className="text-xs font-medium text-muted">パターン{index + 1}</p>
+            <p className="mt-0.5 font-bold">{pattern.when}</p>
+            <p className="mt-1 inline-flex rounded-full bg-chip px-3 py-1 text-sm font-medium text-primary">{pattern.kind}</p>
+            <p className="mt-2">{pattern.day}</p>
+            <p className="text-muted">{pattern.how}</p>
+          </li>
+        ))}
+      </ol>
+      <p className="mt-3 text-muted">
+        空気を抜いてから出します。段ボールとは混ぜません。外側の段ボールは資源物です。資源物の日（毎週
+        {formatDays(district.days.shigen)}曜日）に、ひもで結んで出します。
+      </p>
+    </div>
   );
 }
 
