@@ -343,88 +343,106 @@ export type MaterialGuess = {
   bulky: boolean;
 };
 
-const MATERIAL_GUESSES: { words: string[]; guess: MaterialGuess }[] = [
+const MATERIAL_FROM_WORDS: { words: string[]; guess: MaterialGuess }[] = [
   {
-    words: ["うちわ", "団扇"],
-    guess: {
-      material: "紙・竹、またはプラスチック",
-      typeName: "もやすごみ",
-      slot: "moyasu",
-      kind: "もやすごみ（材質から推定）",
-      how: "白色半透明または透明の袋。もやすごみの日。",
-      notes: "紙や竹のうちわも、プラマークのないプラスチックのうちわも、もやすごみです。1辺が40cm以上は粗大ごみです。戸田市の品目表にこの名前はありません。",
-      bulky: false,
-    },
-  },
-  {
-    words: ["プラスチック", "ビニール", "ポリエチレン", "スチロール"],
+    words: ["プラスチック", "ビニール", "ポリエチレン", "スチロール", "樹脂", "ナイロン"],
     guess: {
       material: "プラスチック",
       typeName: "もやすごみ",
       slot: "moyasu",
       kind: "もやすごみ（材質から推定）",
       how: "プラマークのないプラスチック製品は、白色半透明または透明の袋。もやすごみの日。",
-      notes: "プラマークがある容器包装は、もやさないごみの日です。1辺が40cm以上は粗大ごみです。戸田市の品目表にこの名前はありません。",
+      notes: "入力の材質から推定しています。プラマークがある容器包装は、もやさないごみの日です。1辺が40cm以上は粗大ごみです。戸田市の品目表にこの名前はありません。",
       bulky: false,
     },
   },
   {
-    words: ["金属", "ステンレス", "アルミニウム", "アルミ", "陶器", "瀬戸物", "ガラス"],
+    words: ["金属", "ステンレス", "アルミニウム", "アルミ", "鉄", "針金", "陶器", "瀬戸物", "陶磁器", "ガラス"],
     guess: {
       material: "金属・陶器・ガラス",
       typeName: "不燃物等",
       slot: "moyasanai",
       kind: "不燃物等（材質から推定）",
       how: "もやさないごみの日に、黄色のかご。",
-      notes: "小さな金属・陶器・ガラスとして推定しています。1辺が40cm以上の家具や家電は粗大ごみです。戸田市の品目表にこの名前はありません。",
+      notes: "入力の材質から推定しています。小さな金属・陶器・ガラスです。1辺が40cm以上の家具や家電は粗大ごみです。戸田市の品目表にこの名前はありません。",
       bulky: false,
     },
   },
   {
-    words: ["紙", "木製", "木材", "竹"],
+    words: ["紙", "木製", "木材", "竹製", "竹", "木", "わら", "藁"],
     guess: {
       material: "紙・木・竹",
       typeName: "もやすごみ",
       slot: "moyasu",
       kind: "もやすごみ（材質から推定）",
       how: "白色半透明または透明の袋。もやすごみの日。",
-      notes: "新聞・雑誌・段ボール・紙パックは資源物です。それ以外の紙や木、竹の製品としてもやすごみと推定しています。戸田市の品目表にこの名前はありません。",
+      notes: "入力の材質から推定しています。新聞・雑誌・段ボール・紙パックは資源物です。それ以外の紙や木、竹の製品はもやすごみです。戸田市の品目表にこの名前はありません。",
       bulky: false,
     },
   },
   {
-    words: ["布", "繊維"],
+    words: ["布", "繊維", "綿", "麻"],
     guess: {
       material: "布",
       typeName: "布類",
       slot: "shigen",
       kind: "布類（材質から推定）",
       how: "資源物の日に、白色半透明または透明の袋。",
-      notes: "汚れや油がひどいもの、中綿入りはもやすごみです。戸田市の品目表にこの名前はありません。",
+      notes: "入力の材質から推定しています。汚れや油がひどいもの、中綿入りはもやすごみです。戸田市の品目表にこの名前はありません。",
       bulky: false,
     },
   },
 ];
 
-const MATERIAL_INDEX = MATERIAL_GUESSES.map((rule) => ({
-  words: rule.words.map((word) => normalize(word)),
-  guess: rule.guess,
-}));
+const MATERIAL_FROM_OBJECTS: { words: string[]; guess: MaterialGuess }[] = [
+  {
+    words: ["うちわ", "団扇", "扇子"],
+    guess: {
+      material: "紙・竹、またはプラスチック",
+      typeName: "もやすごみ",
+      slot: "moyasu",
+      kind: "もやすごみ（材質から推定）",
+      how: "白色半透明または透明の袋。もやすごみの日。",
+      notes: "紙・竹のものも、プラマークのないプラスチックのものも、もやすごみです。1辺が40cm以上は粗大ごみです。戸田市の品目表にこの名前はありません。",
+      bulky: false,
+    },
+  },
+  {
+    words: ["割り箸", "爪楊枝", "楊枝", "つまようじ", "マッチ", "鉛筆", "色鉛筆", "ボールペン", "シャープペン", "下敷き", "くし", "櫛"],
+    guess: {
+      material: "紙・木・竹、またはプラスチック",
+      typeName: "もやすごみ",
+      slot: "moyasu",
+      kind: "もやすごみ（材質から推定）",
+      how: "白色半透明または透明の袋。もやすごみの日。",
+      notes: "紙・木のものも、プラマークのないプラスチック製品も、もやすごみです。1辺が40cm以上は粗大ごみです。戸田市の品目表にこの名前はありません。",
+      bulky: false,
+    },
+  },
+];
 
-export function inferMaterial(q: string): MaterialGuess | null {
-  const s = normalize(q);
-  if (!s) return null;
+function bestMaterial(rules: { words: string[]; guess: MaterialGuess }[], s: string): { len: number; guess: MaterialGuess } | null {
   let bestLen = 0;
   let best: MaterialGuess | null = null;
-  for (const rule of MATERIAL_INDEX) {
+  for (const rule of rules) {
     for (const word of rule.words) {
-      if (word.length >= 1 && s.includes(word) && word.length > bestLen) {
-        bestLen = word.length;
+      const key = normalize(word);
+      if (key.length >= 1 && s.includes(key) && key.length > bestLen) {
+        bestLen = key.length;
         best = rule.guess;
       }
     }
   }
-  return best;
+  return best ? { len: bestLen, guess: best } : null;
+}
+
+export function inferMaterial(q: string): MaterialGuess | null {
+  const s = normalize(q);
+  if (!s) return null;
+  const fromWords = bestMaterial(MATERIAL_FROM_WORDS, s);
+  const fromObject = bestMaterial(MATERIAL_FROM_OBJECTS, s);
+  if (fromWords && fromObject) return fromWords.len >= fromObject.len ? fromWords.guess : fromObject.guess;
+  return fromWords?.guess ?? fromObject?.guess ?? null;
 }
 
 export function formatDays(days: number[]): string {

@@ -206,7 +206,7 @@ function Home() {
                     : guess
                       ? `「${query.trim()}」は戸田市の品目表にありません。種類から「${guess.typeName}」と推定します。`
                       : material
-                        ? `「${query.trim()}」は近い言い方がありません。材質（${material.material}）から「${material.typeName}」と推定します。`
+                        ? `「${query.trim()}」は近い言い方がありません。入力から材質（${material.material}）を推定し、「${material.typeName}」と決めます。`
                         : officialState === "ready"
                           ? `「${query.trim()}」はそのままでは見つかりません。戸田市の品目表にもありません。近い言い方を選んでください。`
                           : `「${query.trim()}」はそのままでは見つかりません。近い言い方を選んでください。`}
