@@ -8,6 +8,7 @@ import {
   WEEKDAY,
   formatDays,
   formatStamp,
+  inferMaterial,
   inferType,
   isClosure,
   nextCollection,
@@ -87,6 +88,13 @@ function Home() {
   const guess = useMemo(
     () => (query.trim() && matches.length === 0 ? inferType(query) : null),
     [query, matches.length],
+  );
+  const material = useMemo(
+    () =>
+      query.trim() && matches.length === 0 && !guess && suggestions.length === 0
+        ? inferMaterial(query)
+        : null,
+    [query, matches.length, guess, suggestions.length],
   );
   const picked =
     (pickedId ? ITEMS.find((it) => it.id === pickedId) : undefined) ??
@@ -186,16 +194,22 @@ function Home() {
                 {officialState === "error"
                   ? guess
                     ? "公式の品目表をただいま確認できません。種類から推定します。"
-                    : "公式の品目表をただいま確認できません。近い言い方を選んでください。"
+                    : material
+                      ? "公式の品目表をただいま確認できません。近い言い方もないので、材質から推定します。"
+                      : "公式の品目表をただいま確認できません。近い言い方を選んでください。"
                   : query.trim().length < 2
                     ? guess
                       ? "1文字のため公式の品目表は見ていません。種類から推定します。"
-                      : "1文字のため公式の品目表は見ていません。近い言い方を選んでください。"
+                      : material
+                        ? "近い言い方はありません。材質から推定します。"
+                        : "1文字のため公式の品目表は見ていません。近い言い方を選んでください。"
                     : guess
                       ? `「${query.trim()}」は戸田市の品目表にありません。種類から「${guess.typeName}」と推定します。`
-                      : officialState === "ready"
-                        ? `「${query.trim()}」はそのままでは見つかりません。戸田市の品目表にもありません。近い言い方を選んでください。`
-                        : `「${query.trim()}」はそのままでは見つかりません。近い言い方を選んでください。`}
+                      : material
+                        ? `「${query.trim()}」は近い言い方がありません。材質（${material.material}）から「${material.typeName}」と推定します。`
+                        : officialState === "ready"
+                          ? `「${query.trim()}」はそのままでは見つかりません。戸田市の品目表にもありません。近い言い方を選んでください。`
+                          : `「${query.trim()}」はそのままでは見つかりません。近い言い方を選んでください。`}
               </p>
               {suggestions.length > 0 && !guess ? (
                 <ul className="mt-2">
@@ -231,6 +245,22 @@ function Home() {
                     }}
                   />
                   {guess.bulky && guess.slot !== "sodai" ? <SodaiGuide /> : null}
+                </div>
+              ) : material ? (
+                <div className="mt-3 border-t border-line pt-3">
+                  <Result
+                    district={district}
+                    item={{
+                      id: "material",
+                      name: query.trim(),
+                      aliases: [],
+                      slot: material.slot,
+                      kind: material.kind,
+                      how: material.how,
+                      notes: material.notes,
+                    }}
+                  />
+                  {material.bulky && material.slot !== "sodai" ? <SodaiGuide /> : null}
                 </div>
               ) : null}
             </>

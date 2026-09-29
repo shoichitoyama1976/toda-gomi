@@ -333,6 +333,100 @@ export function inferType(q: string): Guess | null {
   return best;
 }
 
+export type MaterialGuess = {
+  material: string;
+  typeName: string;
+  slot: Slot;
+  kind: string;
+  how: string;
+  notes: string;
+  bulky: boolean;
+};
+
+const MATERIAL_GUESSES: { words: string[]; guess: MaterialGuess }[] = [
+  {
+    words: ["うちわ", "団扇"],
+    guess: {
+      material: "紙・竹、またはプラスチック",
+      typeName: "もやすごみ",
+      slot: "moyasu",
+      kind: "もやすごみ（材質から推定）",
+      how: "白色半透明または透明の袋。もやすごみの日。",
+      notes: "紙や竹のうちわも、プラマークのないプラスチックのうちわも、もやすごみです。1辺が40cm以上は粗大ごみです。戸田市の品目表にこの名前はありません。",
+      bulky: false,
+    },
+  },
+  {
+    words: ["プラスチック", "ビニール", "ポリエチレン", "スチロール"],
+    guess: {
+      material: "プラスチック",
+      typeName: "もやすごみ",
+      slot: "moyasu",
+      kind: "もやすごみ（材質から推定）",
+      how: "プラマークのないプラスチック製品は、白色半透明または透明の袋。もやすごみの日。",
+      notes: "プラマークがある容器包装は、もやさないごみの日です。1辺が40cm以上は粗大ごみです。戸田市の品目表にこの名前はありません。",
+      bulky: false,
+    },
+  },
+  {
+    words: ["金属", "ステンレス", "アルミニウム", "アルミ", "陶器", "瀬戸物", "ガラス"],
+    guess: {
+      material: "金属・陶器・ガラス",
+      typeName: "不燃物等",
+      slot: "moyasanai",
+      kind: "不燃物等（材質から推定）",
+      how: "もやさないごみの日に、黄色のかご。",
+      notes: "小さな金属・陶器・ガラスとして推定しています。1辺が40cm以上の家具や家電は粗大ごみです。戸田市の品目表にこの名前はありません。",
+      bulky: false,
+    },
+  },
+  {
+    words: ["紙", "木製", "木材", "竹"],
+    guess: {
+      material: "紙・木・竹",
+      typeName: "もやすごみ",
+      slot: "moyasu",
+      kind: "もやすごみ（材質から推定）",
+      how: "白色半透明または透明の袋。もやすごみの日。",
+      notes: "新聞・雑誌・段ボール・紙パックは資源物です。それ以外の紙や木、竹の製品としてもやすごみと推定しています。戸田市の品目表にこの名前はありません。",
+      bulky: false,
+    },
+  },
+  {
+    words: ["布", "繊維"],
+    guess: {
+      material: "布",
+      typeName: "布類",
+      slot: "shigen",
+      kind: "布類（材質から推定）",
+      how: "資源物の日に、白色半透明または透明の袋。",
+      notes: "汚れや油がひどいもの、中綿入りはもやすごみです。戸田市の品目表にこの名前はありません。",
+      bulky: false,
+    },
+  },
+];
+
+const MATERIAL_INDEX = MATERIAL_GUESSES.map((rule) => ({
+  words: rule.words.map((word) => normalize(word)),
+  guess: rule.guess,
+}));
+
+export function inferMaterial(q: string): MaterialGuess | null {
+  const s = normalize(q);
+  if (!s) return null;
+  let bestLen = 0;
+  let best: MaterialGuess | null = null;
+  for (const rule of MATERIAL_INDEX) {
+    for (const word of rule.words) {
+      if (word.length >= 1 && s.includes(word) && word.length > bestLen) {
+        bestLen = word.length;
+        best = rule.guess;
+      }
+    }
+  }
+  return best;
+}
+
 export function formatDays(days: number[]): string {
   return days.map((d) => WEEKDAY[d]).join("・");
 }
