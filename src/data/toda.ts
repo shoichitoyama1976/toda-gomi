@@ -136,7 +136,7 @@ export const ITEMS: Item[] = [
   item("pc", "パソコン", ["ノートpc", "デスクトップ"], "none", "メーカー回収", "市では収集しません。製造メーカーまたは小型家電リサイクル窓口へ。"),
 ];
 
-function normalize(raw: string): string {
+export function normalize(raw: string): string {
   return raw
     .trim()
     .toLowerCase()

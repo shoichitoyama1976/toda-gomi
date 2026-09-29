@@ -11,6 +11,7 @@ import {
   inferType,
   isClosure,
   nextCollection,
+  normalize,
   searchItems,
   suggestItems,
   tokyoStamp,
@@ -21,8 +22,8 @@ import { lookupOfficial } from "@/lib/official-lookup";
 import type { OfficialRow } from "@/data/official-list";
 
 function isPackingFoam(q: string): boolean {
-  const s = q.replace(/\s+/g, "");
-  return ["発泡スチロール", "緩衝材", "梱包材", "スチロール"].some((word) => s.includes(word));
+  const s = normalize(q);
+  return ["発泡スチロール", "緩衝材", "梱包材", "スチロール"].some((word) => s.includes(normalize(word)));
 }
 
 export const Route = createFileRoute("/")({ component: Home });
@@ -189,11 +190,21 @@ function Home() {
           {officialState !== "loading" && officialHits.length === 0 ? (
             <>
               <p className="text-muted">
-                {foam
-                  ? `「${query.trim()}」は戸田市の品目表にありません。種類から「梱包用の発泡スチロール」と推定します。`
-                  : guess
-                    ? `「${query.trim()}」は戸田市の品目表にありません。種類から「${guess.typeName}」と推定します。`
-                    : `「${query.trim()}」はそのままでは見つかりません。${officialState === "error" ? "公式の品目表をただいま確認できません。" : officialState === "ready" ? "戸田市の品目表にもありません。近い言い方を選んでください。" : "近い言い方を選んでください。"}`}
+                {officialState === "error"
+                  ? foam || guess
+                    ? "公式の品目表をただいま確認できません。種類から推定します。"
+                    : "公式の品目表をただいま確認できません。近い言い方を選んでください。"
+                  : query.trim().length < 2
+                    ? foam || guess
+                      ? "1文字のため公式の品目表は見ていません。種類から推定します。"
+                      : "1文字のため公式の品目表は見ていません。近い言い方を選んでください。"
+                    : foam
+                      ? `「${query.trim()}」は戸田市の品目表にありません。種類から「梱包用の発泡スチロール」と推定します。`
+                      : guess
+                        ? `「${query.trim()}」は戸田市の品目表にありません。種類から「${guess.typeName}」と推定します。`
+                        : officialState === "ready"
+                          ? `「${query.trim()}」はそのままでは見つかりません。戸田市の品目表にもありません。近い言い方を選んでください。`
+                          : `「${query.trim()}」はそのままでは見つかりません。近い言い方を選んでください。`}
               </p>
               {suggestions.length > 0 && !foam && !guess ? (
                 <ul className="mt-2">
