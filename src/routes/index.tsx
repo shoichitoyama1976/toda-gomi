@@ -11,7 +11,6 @@ import {
   inferType,
   isClosure,
   nextCollection,
-  normalize,
   searchItems,
   suggestItems,
   tokyoStamp,
@@ -20,11 +19,6 @@ import {
 } from "@/data/toda";
 import { lookupOfficial } from "@/lib/official-lookup";
 import type { OfficialRow } from "@/data/official-list";
-
-function isPackingFoam(q: string): boolean {
-  const s = normalize(q);
-  return ["発泡スチロール", "緩衝材", "梱包材", "スチロール"].some((word) => s.includes(normalize(word)));
-}
 
 export const Route = createFileRoute("/")({ component: Home });
 
@@ -94,7 +88,6 @@ function Home() {
     () => (query.trim() && matches.length === 0 ? inferType(query) : null),
     [query, matches.length],
   );
-  const foam = query.trim() !== "" && matches.length === 0 && isPackingFoam(query);
   const picked =
     (pickedId ? ITEMS.find((it) => it.id === pickedId) : undefined) ??
     (matches.length === 1 ? matches[0] : undefined);
@@ -191,22 +184,20 @@ function Home() {
             <>
               <p className="text-muted">
                 {officialState === "error"
-                  ? foam || guess
+                  ? guess
                     ? "公式の品目表をただいま確認できません。種類から推定します。"
                     : "公式の品目表をただいま確認できません。近い言い方を選んでください。"
                   : query.trim().length < 2
-                    ? foam || guess
+                    ? guess
                       ? "1文字のため公式の品目表は見ていません。種類から推定します。"
                       : "1文字のため公式の品目表は見ていません。近い言い方を選んでください。"
-                    : foam
-                      ? `「${query.trim()}」は戸田市の品目表にありません。種類から「梱包用の発泡スチロール」と推定します。`
-                      : guess
-                        ? `「${query.trim()}」は戸田市の品目表にありません。種類から「${guess.typeName}」と推定します。`
-                        : officialState === "ready"
-                          ? `「${query.trim()}」はそのままでは見つかりません。戸田市の品目表にもありません。近い言い方を選んでください。`
-                          : `「${query.trim()}」はそのままでは見つかりません。近い言い方を選んでください。`}
+                    : guess
+                      ? `「${query.trim()}」は戸田市の品目表にありません。種類から「${guess.typeName}」と推定します。`
+                      : officialState === "ready"
+                        ? `「${query.trim()}」はそのままでは見つかりません。戸田市の品目表にもありません。近い言い方を選んでください。`
+                        : `「${query.trim()}」はそのままでは見つかりません。近い言い方を選んでください。`}
               </p>
-              {suggestions.length > 0 && !foam && !guess ? (
+              {suggestions.length > 0 && !guess ? (
                 <ul className="mt-2">
                   {suggestions.map((it) => (
                     <li key={it.id} className="border-t border-line">
@@ -225,11 +216,7 @@ function Home() {
                   ))}
                 </ul>
               ) : null}
-              {foam ? (
-                <div className="mt-3 border-t border-line pt-3">
-                  <FoamAnswer district={district} />
-                </div>
-              ) : guess ? (
+              {guess ? (
                 <div className="mt-3 border-t border-line pt-3">
                   <Result
                     district={district}
@@ -354,52 +341,6 @@ function Result({ district, item }: { district: District; item: Item }) {
       </dl>
 
       {item.slot === "sodai" ? <SodaiGuide /> : null}
-    </article>
-  );
-}
-
-function FoamAnswer({ district }: { district: District }) {
-  const patterns = [
-    {
-      when: "プラマークがある",
-      kind: "プラマーク容器包装",
-      day: `もやさないごみの日（毎週${formatDays(district.days.moyasanai)}曜日）`,
-      how: "白色半透明または透明の袋。食品トレイと同じです。",
-    },
-    {
-      when: "プラマークがない",
-      kind: "もやすごみ",
-      day: `もやすごみの日（毎週${formatDays(district.days.moyasu)}曜日）`,
-      how: "白色半透明または透明の袋。緩衝材の塊は、こちらが多いです。",
-    },
-    {
-      when: "1辺が40cm以上",
-      kind: "粗大ごみ",
-      day: "マークの有無にかかわらず、申込み制",
-      how: "指定日の朝8時までに出します。",
-    },
-  ];
-
-  return (
-    <article className="mb-4 rounded-xl border border-line bg-surface px-4 py-3 text-sm leading-relaxed">
-      <p>梱包用の発泡スチロールは、次の3つです。段ボールとは別に出します。</p>
-      <ol className="mt-3 space-y-2">
-        {patterns.map((pattern, index) => (
-          <li key={pattern.kind} className="rounded-xl border border-line px-3 py-3">
-            <p className="text-xs font-medium text-muted">パターン{index + 1}</p>
-            <p className="mt-0.5 font-bold">{pattern.when}</p>
-            <p className="mt-1 inline-flex rounded-full bg-chip px-3 py-1 text-sm font-medium text-primary">
-              {pattern.kind}
-            </p>
-            <p className="mt-2">{pattern.day}</p>
-            <p className="text-muted">{pattern.how}</p>
-          </li>
-        ))}
-      </ol>
-      <p className="mt-3 text-muted">
-        外側の段ボールは資源物です。資源物の日（毎週{formatDays(district.days.shigen)}
-        曜日）に、ひもで結んで出します。発泡スチロールとは混ぜません。
-      </p>
     </article>
   );
 }
