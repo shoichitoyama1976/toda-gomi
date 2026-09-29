@@ -160,38 +160,6 @@ for (let i = 0; i < ITEMS.length; i++) {
   }
 }
 
-/** 3文字グラム → 品目番号。同じ品目は1回だけ。 */
-const GRAM = new Map<string, number[]>();
-for (let k = 0; k < keyText.length; k++) {
-  const text = keyText[k];
-  const item = keyItem[k];
-  if (text.length < 3) continue;
-  const seen = new Set<string>();
-  for (let i = 0; i <= text.length - 3; i++) {
-    const gram = text.slice(i, i + 3);
-    if (seen.has(gram)) continue;
-    seen.add(gram);
-    const bucket = GRAM.get(gram);
-    if (!bucket) GRAM.set(gram, [item]);
-    else if (bucket[bucket.length - 1] !== item && !bucket.includes(item)) bucket.push(item);
-  }
-}
-
-function longestCommon(a: string, b: string): number {
-  let best = 0;
-  const aLen = a.length;
-  const bLen = b.length;
-  for (let i = 0; i < aLen; i++) {
-    for (let j = 0; j < bLen; j++) {
-      let n = 0;
-      while (i + n < aLen && j + n < bLen && a[i + n] === b[j + n]) n += 1;
-      if (n > best) best = n;
-      if (best >= aLen) return best;
-    }
-  }
-  return best;
-}
-
 function includesAsWord(key: string, query: string): boolean {
   const qLen = query.length;
   let from = 0;
@@ -224,29 +192,6 @@ export function searchItems(q: string): Item[] {
     .sort((a, b) => b[1] - a[1] || ITEMS[a[0]].name.localeCompare(ITEMS[b[0]].name, "ja"))
     .slice(0, 8)
     .map(([index]) => ITEMS[index]);
-}
-
-export function suggestItems(q: string): Item[] {
-  const s = normalize(q);
-  if (s.length < 3) return [];
-  const ids = new Set<number>();
-  for (let i = 0; i <= s.length - 3; i++) {
-    const bucket = GRAM.get(s.slice(i, i + 3));
-    if (!bucket) continue;
-    for (let n = 0; n < bucket.length; n++) ids.add(bucket[n]);
-  }
-  const ranked: { index: number; share: number }[] = [];
-  for (const index of ids) {
-    const it = ITEMS[index];
-    let share = longestCommon(s, normalize(it.name));
-    for (let a = 0; a < it.aliases.length; a++) {
-      const n = longestCommon(s, normalize(it.aliases[a]));
-      if (n > share) share = n;
-    }
-    if (share >= 3) ranked.push({ index, share });
-  }
-  ranked.sort((a, b) => b.share - a.share || ITEMS[a.index].name.localeCompare(ITEMS[b.index].name, "ja"));
-  return ranked.slice(0, 5).map((row) => ITEMS[row.index]);
 }
 
 export type Guess = {

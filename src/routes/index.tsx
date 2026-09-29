@@ -13,7 +13,6 @@ import {
   isClosure,
   nextCollection,
   searchItems,
-  suggestItems,
   tokyoStamp,
   type District,
   type Item,
@@ -46,10 +45,6 @@ function Home() {
 
   const district = DISTRICTS.find((d) => d.id === districtId) ?? DISTRICTS[0];
   const matches = useMemo(() => searchItems(query), [query]);
-  const suggestions = useMemo(
-    () => (query.trim() && matches.length === 0 ? suggestItems(query) : []),
-    [query, matches.length],
-  );
   const needOfficial = query.trim().length >= 2 && matches.length === 0;
 
   useEffect(() => {
@@ -86,15 +81,12 @@ function Home() {
   }, [needOfficial, query]);
 
   const guess = useMemo(
-    () => (query.trim() && matches.length === 0 && suggestions.length === 0 ? inferType(query) : null),
-    [query, matches.length, suggestions.length],
+    () => (query.trim() && matches.length === 0 ? inferType(query) : null),
+    [query, matches.length],
   );
   const material = useMemo(
-    () =>
-      query.trim() && matches.length === 0 && !guess && suggestions.length === 0
-        ? inferMaterial(query)
-        : null,
-    [query, matches.length, guess, suggestions.length],
+    () => (query.trim() && matches.length === 0 && !guess ? inferMaterial(query) : null),
+    [query, matches.length, guess],
   );
   const picked =
     (pickedId ? ITEMS.find((it) => it.id === pickedId) : undefined) ??
@@ -195,41 +187,22 @@ function Home() {
                   ? guess
                     ? "公式の品目表をただいま確認できません。種類から推定します。"
                     : material
-                      ? "公式の品目表をただいま確認できません。近い言い方もないので、材質から推定します。"
-                      : "公式の品目表をただいま確認できません。近い言い方を選んでください。"
+                      ? "公式の品目表をただいま確認できません。材質から推定します。"
+                      : "公式の品目表をただいま確認できません。区分は見つかりませんでした。"
                   : query.trim().length < 2
                     ? guess
                       ? "1文字のため公式の品目表は見ていません。種類から推定します。"
                       : material
-                        ? "近い言い方はありません。材質から推定します。"
-                        : "1文字のため公式の品目表は見ていません。近い言い方を選んでください。"
+                        ? "1文字のため公式の品目表は見ていません。材質から推定します。"
+                        : "1文字のため公式の品目表は見ていません。区分は見つかりませんでした。"
                     : guess
                       ? `「${query.trim()}」は戸田市の品目表にありません。種類から「${guess.typeName}」と推定します。`
                       : material
-                        ? `「${query.trim()}」は近い言い方がありません。入力から材質（${material.material}）を推定し、「${material.typeName}」と決めます。`
+                        ? `「${query.trim()}」は戸田市の品目表にありません。入力から材質（${material.material}）を推定し、「${material.typeName}」と決めます。`
                         : officialState === "ready"
-                          ? `「${query.trim()}」はそのままでは見つかりません。戸田市の品目表にもありません。近い言い方を選んでください。`
-                          : `「${query.trim()}」はそのままでは見つかりません。近い言い方を選んでください。`}
+                          ? `「${query.trim()}」はそのままでは見つかりません。戸田市の品目表にもありません。`
+                          : `「${query.trim()}」はそのままでは見つかりません。`}
               </p>
-              {suggestions.length > 0 && !guess ? (
-                <ul className="mt-2">
-                  {suggestions.map((it) => (
-                    <li key={it.id} className="border-t border-line">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setQuery(it.name);
-                          setPickedId(it.id);
-                        }}
-                        className="flex min-h-12 w-full items-center justify-between gap-3 py-2 text-left"
-                      >
-                        <span className="font-medium">{it.name}</span>
-                        <span className="shrink-0 text-xs text-muted">{SLOT_META[it.slot].title}</span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
               {guess ? (
                 <div className="mt-3 border-t border-line pt-3">
                   <Result
